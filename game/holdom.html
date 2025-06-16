@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홀덤</title>
+    <style>
+        body {
+            background-image: url("../game/background.png");
+            background-repeat: no-repeat; /* 이미지 반복 금지 */
+            background-size: 1080px; 
+        }
+        
+        .cardzone{
+            display: flex;
+        }
+        #share-cards{
+            margin-left:260px;
+            margin-top:152px;
+            height : 150px;
+        }
+        #share-cards img{ 
+            width: 95px;
+            margin:5px;
+        }
+        #user-cards{
+            display: flex;
+            width: 95px; 
+            height:137.8px;
+            padding-left:120px;
+            margin-right:10px;
+            padding-top:60px;
+        }
+        #sys-cards {
+            display: flex;
+            padding-top:60px;
+            margin-left: 75px;
+        }
+        #sit{
+            position: relative;
+            margin-left: 150px; 
+            width :300px;
+            text-align:center;
+            padding-top:25px;
+        }
+        h1{
+            color:rgb(247, 205, 90);
+            font-size: 35px;
+            
+        }
+        .money{
+            display:flex;
+            text-align:center;
+        }
+        .money>*{
+            font-size: 50px;
+            color:rgb(247, 205, 90);
+            text-align:center;
+            margin-top :15px;
+        }
+        #usermoney{
+            position: relative;
+            margin-left:80px;
+            width:250px;
+        }
+        #bet{
+            text-align:center;
+            width:195px;
+        }
+        #pot{
+            text-align:center;
+            width:180px;
+        }
+        #sysmoney{
+            text-align:center;
+            margin-left:50px;
+            width:180px;
+        }
+        .result{
+            display: flex;
+            font-size: 50px;
+            color:rgb(247, 205, 90);
+            text-align:center;
+            margin-top :15px;
+        }
+        input {
+            background-color:rgb(95,27,28);
+            height:50px;
+            width: 150px;
+            color:rgb(247, 205, 90);
+            margin-top:30px;
+            border-color:rgb(61, 18, 18);
+            font-size: 30px;
+            margin-left: 10px;
+            margin-left: 20px;
+            border-radius: 10px;
+            border-style: 50px;
+        }
+        #btn {
+            width: 1080px;
+            text-align: center; /* 버튼을 오른쪽 정렬 */
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <section class="wrap">
+        <div id="share-cards">
+        </div>
+        <section class="cardzone">
+            <div id="user-cards"></div>
+            <div id="sit"></div>
+            <div id="sys-cards"></div>
+        </section>
+        <section class="money">
+            <div id="usermoney"></div>
+            <section class="result">
+            <div id="bet"></div>
+            <div id="pot"></div>
+            </section>
+            <div id="sysmoney"></div>
+        </section>
+    </section>
+
+        <div id="btn"></div>
+        
+    <script>   
+        var blind = 10; //bet
+        function player(){
+            this.card=[];
+            this.money=1000;
+        }
+        let cnt=1; //순서
+        let user=new player();
+        let sys=new player();
+        let share_card=[];
+        let pot = blind;
+        sys.money=sys.money-pot;
+
+        const suits = ["clubs", "hearts", "spades", "diamonds"];
+        const values = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"];
+        const deck = [];
+
+        for (let suit of suits) {
+            for (let value of values) {
+                deck.push({ suit, value });
+            }
+        }
+
+        function getCardImage(card) {//카드 이미지 가져오기
+            return `../${card.value}_of_${card.suit.toLowerCase()}.png`;
+        }
+
+        function displayCards(cards, elementId) {//카드 보여주기
+            const container = document.getElementById(elementId);
+            container.innerHTML = "";  
+            cards.forEach(card => {
+                let img = document.createElement("img");
+                img.src = `images/${getCardImage(card)}`;  
+                img.alt = `${card.value} of ${card.suit}`;
+                img.style.width = "95px";  
+                img.style.margin = "8px";
+                container.appendChild(img);
+            });
+        }        
+        function shuffle() {//카드섞기
+            for (let i = deck.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]]; 
+            }
+            
+        }       
+
+        function dist(){//카드 나눠주기
+            for(let i=1;i<=2;i++){
+                user.card.push(deck.pop());
+                sys.card.push(deck.pop());
+            }
+            
+        }
+        function removeAllButtons() {//기존 버튼 삭제
+            document.querySelectorAll("input[type=button]").forEach(button => button.remove());
+        }
+
+        window.onload=function(){  //게임 시작
+            restartGame();
+        }
+        function restartGame() {
+            user.card = [];  
+            sys.card = [];   
+            share_card = []; 
+            shuffle(); //카드섞기
+            dist(); //카드 나눠주기
+            displayCards(user.card, "user-cards");  //유저 카드 보여주기기
+            document.getElementById("sys-cards").innerHTML="<img src='../game/back.jpg' width='95px' height='133px' style='margin-right: 8px;' > <img src='../game/back.jpg' width='95px' height='133px' >  ";
+            //시스템 카드 뒷면 표시
+            
+        setTimeout(() => pre_flop(user),500)
+        }
+
+        function pre_flop(user){
+            console.log("=======프리플롭");
+            betAction(user,flop);
+            showmoney();
+        }
+        function flop(){//3장 공개
+            console.log("=======플롭");
+            for(let i=1;i<=3;i++){
+                share_card.push(deck.pop());
+            }
+            displayCards(share_card,"share-cards");
+            checkOrBet(user,turn);
+        }
+        function turn (){//카드 한장 공개
+            console.log("=======턴");
+            share_card.push(deck.pop());
+            displayCards(share_card,"share-cards");
+            checkOrBet(sys,river);
+        }
+
+        function river (){//카드 한장 공개
+            console.log("=======리버");
+            share_card.push(deck.pop());
+            displayCards(share_card,"share-cards");
+            checkOrBet(user,showDown);
+        }
+
+        function showDown(){ //결과 발표
+            console.log("=======쇼다운");
+            let userBestHand = getBestHand(user.card.concat(share_card));// 최고의 5개 조합 카드 찾기
+            let sysBestHand = getBestHand(sys.card.concat(share_card));
+            let userRank = getHandRank(userBestHand); //족보 번호 리턴턴
+            let sysRank = getHandRank(sysBestHand);
+            document.body.style.backgroundImage ="url('../game/showdown.png')";
+            document.getElementById("usermoney").innerText="";
+            document.getElementById("sysmoney").innerText="";
+            document.getElementById("pot").innerText="";
+            document.getElementById("bet").innerText="";
+            document.getElementById("sit").innerText="";
+
+
+
+            displayCards(userBestHand, "share-cards");
+            displayCards(sysBestHand, "user-cards");
+
+            document.getElementById("sys-cards").innerHTML="";
+
+            if (userRank < sysRank) {
+                console.log(" 사용자 승리!");
+                document.getElementsByClassName("result")[0].innerText="Player 승리!";
+                user.money += pot;
+            } else if (userRank > sysRank) {
+                console.log(" 시스템 승리!");
+                document.getElementsByClassName("result")[0].innerText="System 승리!";
+                sys.money += pot;
+            } else {
+                console.log("무승부! 팟 분배");
+                document.getElementsByClassName("result")[0].innerText="무승부! 팟 분배";
+                user.money += pot / 2;
+                sys.money += pot / 2;
+            }
+
+            pot = 0;
+
+            if(user.money<=0){
+                alert("패배!");
+            }else if (sys.money<=0){
+                alert("승리!")
+            }else{
+                setTimeout(()=>{
+                    document.getElementById("share-cards").innerHTML="";
+                    document.body.style.backgroundImage ="";
+                    document.getElementsByClassName("result")[0].innerHTML=
+                    "<div id='bet'></div><div id='pot'></div>";
+                    setTimeout(restartGame,500);
+
+                    }, 7000); 
+            }
+        }
+
+        function getBestHand(cards) {
+            let bestHand = [];
+            let bestRank = 10;
+            let combinations = getCombinations(cards, 5);
+            combinations.forEach(hand => {
+                let rank = getHandRank(hand);
+                if (rank < bestRank) {
+                    bestRank = rank;
+                    bestHand = hand;
+                }
+            });
+            return bestHand;
+        }
+
+        function getCombinations(arr, num) {
+            function helper(start, combo) {
+                if (combo.length === num) {
+                    result.push([...combo]);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combo.push(arr[i]);
+                    helper(i + 1, combo);
+                    combo.pop();
+                }
+            }
+            let result = [];
+            helper(0, []);
+            return result;
+        }
+
+        function getHandRank(hand) {
+            let values = hand.map(card => card.value).sort((a, b) => a - b);
+            let suits = hand.map(card => card.suit);
+
+            let valueCounts = countOccurrences(values);
+            let suitCounts = countOccurrences(suits);
+
+            let isFlush = Object.values(suitCounts).some(count => count >= 5);
+            let isStraight = checkStraight(values);
+
+            if (isFlush && isStraight) return 1;
+            if (hasSameValue(valueCounts, 4)) return 3;
+            if (hasSameValue(valueCounts, 3) && hasSameValue(valueCounts, 2)) return 4;
+            if (isFlush) return 5;
+            if (isStraight) return 6;
+            if (hasSameValue(valueCounts, 3)) return 7;
+            if (countPairs(valueCounts) === 2) return 8;
+            if (countPairs(valueCounts) === 1) return 9;
+
+            return 10;
+        }
+
+        function countOccurrences(arr) {
+            let counts = {};
+            arr.forEach(val => {
+                counts[val] = (counts[val] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function checkStraight(values) {
+            let uniqueValues = [...new Set(values)];
+            for (let i = 0; i <= uniqueValues.length - 5; i++) {
+                if (uniqueValues[i] + 4 === uniqueValues[i + 4]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function hasSameValue(valueCounts, count) {
+            return Object.values(valueCounts).includes(count);
+        }
+
+        function countPairs(valueCounts) {
+            return Object.values(valueCounts).filter(val => val === 2).length;
+        }
+
+
+        
+
+
+        
+
+        function checkOrBet(player,callback){
+            whoseturn(player,"턴"); //진행 상태 표시
+            const container = document.getElementById("btn");;
+            if(player==user){
+                whoseturn(player,"체크/베팅");
+                console.log("유저 체크 올 배트");
+                let check = document.createElement("input");
+                check.type = "button";
+                check.value="Check";
+
+                let bet = document.createElement("input");
+                bet.type = "button";
+                bet.value="Bet";
+
+                container.appendChild(check);
+                container.appendChild(bet);
+                check.addEventListener("click", () => {
+                    removeAllButtons();
+                    console.log("체크 선택");
+                    whoseturn(player,"체크");
+                    setTimeout(betAction(sys, callback),3000);
+                    
+                });
+
+                bet.addEventListener("click", () => {
+                    removeAllButtons();
+                    console.log("베트 선택");
+                    whoseturn(player,"베팅");
+                    setTimeout(betAction(user, callback),3000);
+                });
+
+            }else{
+                whoseturn(player,"체크/베팅");
+                let random =Math.random();
+                setTimeout(()=>{
+                whoseturn(player,(random>0.5)?"check":"bet");
+                setTimeout(betAction((random>0.5)?user:player,callback),1000); 
+                },3000)
+            }
+        }
+
+        
+
+        function betAction (player,callback) {
+            whoseturn(player,"베팅");
+            const container = document.getElementById("btn"); 
+            if(player==user){
+                console.log("유저 베팅");
+
+                let callButton = document.createElement("input");
+                callButton.type = "button";
+                callButton.value = "call";
+
+                let raiseButton = document.createElement("input");
+                raiseButton.type = "button";
+                raiseButton.value = "raise";
+
+                let foldButton = document.createElement("input");
+                foldButton.type = "button";
+                foldButton.value = "fold";
+
+                container.appendChild(callButton);
+                container.appendChild(raiseButton);
+                container.appendChild(foldButton);
+                callButton.addEventListener("click", () => {removeAllButtons(); callAction(player,callback)});
+                raiseButton.addEventListener("click", () => {removeAllButtons(); raiseAction(player,callback)});
+                foldButton.addEventListener("click", () => {removeAllButtons(); foldAction(player,callback)});
+            }else{
+                setTimeout(()=>{
+                console.log("시스템 배팅");
+                switch(Math.round(Math.random()*3)){
+                    case 1: raiseAction(sys,callback); break;
+                    case 2: foldAction(sys,callback);  break;
+                    default : callAction(sys,callback);  break;
+                }
+            },3000)
+            }
+        }
+
+        function foldAction(player,callback){
+            whoseturn(player,"폴드");
+            console.log("폴드");
+            removeAllButtons();
+            showmoney();
+            whois(player,callback);
+        }
+
+        function callAction(player,callback){
+            whoseturn(player,"콜");
+            console.log("콜");
+            if(player.money>0){
+            removeAllButtons();
+            player.money-=blind;
+            pot+=blind;
+            showmoney();
+            whois(player,callback);
+
+            }else{
+                whoseturn(player,"배팅 불가");
+                whois(player,callback);
+
+            }
+        }
+
+        function raiseAction(player,callback){
+            whoseturn(player,"레이즈");
+            console.log("레이즈");
+            if(player.money>0){
+            if(player==user){
+                const container = document.getElementById("btn");;
+                let doubleButton = document.createElement("input");
+                doubleButton.type = "button";
+                doubleButton.value = "double";
+                let halfButton = document.createElement("input");
+                halfButton.type = "button";
+                halfButton.value = "half";
+                let allInButton = document.createElement("input");
+                allInButton.type = "button";
+                allInButton.value = "all in";
+
+                container.appendChild(doubleButton);
+                container.appendChild(halfButton);
+                container.appendChild(allInButton);
+
+                doubleButton.addEventListener("click", () => {blind*=2; pot+=blind; user.money-=blind;whoseturn(player,"더블");showmoney();console.log("더블");whois(player,callback);});
+                halfButton.addEventListener("click", () => {pot+=(blind*1.5); user.money-=(blind*1.5);showmoney();whoseturn(player,"하프");console.log("하프");whois(player,callback);});
+                allInButton.addEventListener("click", () => {pot+=user.money; user.money=0;showmoney();whoseturn(player,"올인");console.log("올인인");whois(player,callback);});
+                
+                
+            }else{
+                setTimeout(()=>{
+                switch(Math.round(Math.random()*3)){
+                    case 1: blind*=2; pot+=blind; sys.money-=blind;showmoney(); whoseturn(player,"더블"); console.log("더블");whois(player,callback); break;
+                    case 3 : pot+=sys.money; sys.money=0;showmoney(); whoseturn(player,"올인"); console.log("올인인");whois(player,callback);break;
+                    default: pot+=(blind*1.5); sys.money-=(blind*1.5);showmoney();whoseturn(player,"하프");console.log("하프");whois(player,callback); break;
+            }
+        },2000)
+            
+        }}else{
+                whoseturn(player,"배팅 불가");
+                whois(player,callback);
+            
+        }
+        }
+        function whois(player,callback){ //
+            cnt++;
+            removeAllButtons();
+            setTimeout(()=>{
+            if(cnt==1){
+                betAction((player==user)? sys:user,callback);
+            }else {
+                cnt=0;
+                setTimeout(()=>{
+                callback();
+                });
+            }},3000)
+        }
+        function whoseturn(player, text) {//진행상황 표시
+            document.getElementById("sit").innerHTML = "<h1>" + ((player === user) ? "사용자 " : "시스템 ") + text + "</h1>";
+        }
+
+        function showmoney(){   //돈 표시시
+            document.getElementById("usermoney").innerHTML=user.money;
+            document.getElementById("sysmoney").innerHTML=sys.money;    
+            document.getElementById("bet").innerHTML=blind;    
+            document.getElementById("pot").innerHTML=pot;        
+        }
+
+    </script>
+</body>
+</html>
