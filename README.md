@@ -69,5 +69,25 @@
   ![Image](https://github.com/user-attachments/assets/e02c3ee3-11c7-4698-9c12-03d19334f886)
 - 폴드 선택시 베팅 없음
  ![Image](https://github.com/user-attachments/assets/3fe1a7b7-e15d-4229-8caa-870896d6e922)
----
 
+### 4. 🔴 리버 (River)
+
+- **마지막 커뮤니티 카드 1장 공개**
+- **마지막 배팅 라운드**
+- 위 행동 반복
+
+![Image](https://github.com/user-attachments/assets/96683024-7037-432e-9f3c-9d6827b74db2)
+![Image](https://github.com/user-attachments/assets/1b3654d2-19af-4dc9-9a0c-5f4e03340a0f)
+![Image](https://github.com/user-attachments/assets/d56da011-5bc6-4884-ae11-be7cada39492)
+
+### 5. ⚫ 쇼다운 (Showdown)
+
+- 핸드 조합을 비교하여 승자 결정
+- 이긴 쪽이 현재 팟(Pot)에 모인 머니를 획득
+- 이후 남은 게임머니가 0이 된 쪽이 있을 경우 게임 종료
+![Image](https://github.com/user-attachments/assets/6672b83b-900f-478a-8040-503dccfc4f59)
+
+
+### 🔁 반복
+
+- 한쪽의 게임머니가 0이 될 때까지 위 과정을 반복
